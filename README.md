@@ -1,6 +1,6 @@
 # torch_efficient_distloss
 
-Distortion loss is proposed by [mip-nerf-360](https://jonbarron.info/mipnerf360/), which encourages volume rendering weights to be compact and sparse and can alleviate `floater` and `background collapse` artifact.
+Distortion loss is proposed by [mip-nerf-360](https://jonbarron.info/mipnerf360/), which encourages volume rendering weights to be compact and sparse and can alleviate *floater* and *background collapse* artifact.
 In our DVGOv2 report (coming soon), we show that the distortion loss is also helpful to point-based query, which speeds up our training and gives us better quantitative results.
 
 A pytorch pseudo-code for the distortion loss:
