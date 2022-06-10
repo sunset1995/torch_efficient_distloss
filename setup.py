@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 with open('README.md') as f:
     long_description = f.read()
@@ -10,6 +10,7 @@ setup(
     license='MIT',
     description='Efficient distortion loss with O(n) realization.',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Cheng Sun',
     author_email='chengsun@gapp.nthu.edu.tw',
     url='https://github.com/sunset1995',

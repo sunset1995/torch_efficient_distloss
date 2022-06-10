@@ -54,6 +54,7 @@ Assumed `Pytorch` and `numpy` are already installed.
 ## Documentation
 All functions are runs in `O(N)` and are numerical equivalent to the distortion loss.
 ```python
+import torch
 from torch_efficient_distloss import eff_distloss, eff_distloss_native, flatten_eff_distloss
 
 # A toy example
