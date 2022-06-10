@@ -13,7 +13,7 @@ setup(
     author='Cheng Sun',
     author_email='chengsun@gapp.nthu.edu.tw',
     url='https://github.com/sunset1995',
-    download_url='https://github.com/sunset1995/py360convert/archive/v_0.1.0.tar.gz',
+    download_url='https://github.com/sunset1995/torch_efficient_distloss/archive/refs/tags/v0.1.tar.gz',
     install_requires=[],
 )
 
