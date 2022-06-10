@@ -55,9 +55,9 @@ def spec(f, NTIMES, *args):
 
         del loss
 
-    print('forward :', np.mean(ts_forward), 'sec.')
-    print('backward:', np.mean(ts_backward), 'sec.')
-    print('total   :', np.mean(ts_forward) + np.mean(ts_backward), 'sec.')
+    #print(f'forward : {np.sum(ts_forward):.1f} sec.')
+    #print(f'backward: {np.sum(ts_backward):.1f} sec.')
+    print(f'total   : {np.sum(ts_forward) + np.sum(ts_backward):.1f} sec.')
 
     torch.cuda.empty_cache()
     torch.cuda.synchronize()
@@ -75,14 +75,15 @@ def spec(f, NTIMES, *args):
 
     del loss
 
-    print('forward :', mem_forward/1024/1024, 'MB.')
-    print('backward:', mem_backward/1024/1024, 'MB.')
+    #print('forward :', mem_forward/1024/1024, 'MB.')
+    #print('backward:', mem_backward/1024/1024, 'MB.')
+    print(f'total    : {max(mem_forward,mem_backward)/1024/1024:.0f} MB.')
 
 
 if __name__ == '__main__':
     # B rays N points
     B = 8192
-    NTIMES = 10
+    NTIMES = 100
 
     for N in [32, 64, 128, 256, 384, 512]:
         print(f' B={B}; N={N} '.center(50, '='))
