@@ -1,5 +1,5 @@
 import torch
-from torch_eff_distloss import eff_distloss, eff_distloss_native, flatten_eff_distloss
+from torch_efficient_distloss import eff_distloss, eff_distloss_native, flatten_eff_distloss
 
 
 def original_distloss(w, m, interval):
