@@ -1,0 +1,4 @@
+include torch_efficient_distloss/cuda/*cpp
+
+include torch_efficient_distloss/cuda/*cu
+
