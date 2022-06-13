@@ -68,7 +68,7 @@ m = (s[1:] + s[:-1]) * 0.5
 m = m[None].repeat(B,1)
 interval = 1/N
 
-loss = eff_distloss(w, m, interval)
+loss = 0.01 * eff_distloss(w, m, interval)
 loss.backward()
 print('Loss', loss)
 print('Gradient', w.grad)
@@ -85,6 +85,7 @@ print('Gradient', w.grad)
     - Support varied number of sampled points on each ray.
     - All input tensor should be flatten.
     - Should provide an additional flatten Long tensor `ray_id` to specify the ray index of each point. `ray_id` should be increasing (i.e., `ray_id[i-1]<=ray_id[i]`) and ranging from `0` to `N-1`.
+- Loss weight around `0.01` to `0.001` is recommended.
 
 
 ## Testing
