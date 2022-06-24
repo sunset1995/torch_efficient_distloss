@@ -40,7 +40,7 @@ Please cite mip-nerf-360 if you find this repo helpful. We will be happy if you 
                Min Sun and
                Hwann{-}Tzong Chen},
   title     = {Improved Direct Voxel Grid Optimization for Radiance Fields Reconstruction},
-  journal   = {to be announced},
+  journal   = {arxiv cs.GR 2206.05085},
   year      = {2022},
 }
 ```
