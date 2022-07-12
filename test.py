@@ -26,6 +26,11 @@ def check(func_name, my_forward_val, ans_forward, ans_backward, w):
     ret = 'PASS' if torch.isclose(ans_backward, my_backward_grad).all() else 'FAIL'
     print(f'Test {func_name} backward:', ret)
 
+def einsum_distloss(w, m, interval):
+    mm = (m.unsqueeze(-1) - m.unsqueeze(-2)).abs()
+    loss = torch.einsum('bq, qp, bp->b', w, mm, w)
+    loss += (w*w*interval).sum(-1)/3.
+    return loss.mean()
 
 if __name__ == '__main__':
     # B rays N points
@@ -35,8 +40,8 @@ if __name__ == '__main__':
     w = w / w.sum(-1, keepdim=True)
     w = w.clone().requires_grad_()
     s = torch.linspace(0, 1, N+1).cuda()
-    m = (s[1:] + s[:-1]) * 0.5
-    m = m[None].repeat(B,1)
+    m_ = (s[1:] + s[:-1]) * 0.5
+    m = m_[None].repeat(B,1)
     interval = 1/N
 
     # Compute forward & backward answer
@@ -72,7 +77,12 @@ if __name__ == '__main__':
         'eff_distloss array interval',
         eff_distloss(w, m, interval),
         ans_forward, ans_backward, w)
-
+    
+    # check einsum implementation
+    interval = 1/N
+    check('einsum_distloss',
+            einsum_distloss(w, m_, interval),
+            ans_forward, ans_backward, w)
 
     # irregular shape, scalar interval
     interval = 1/N

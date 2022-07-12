@@ -20,15 +20,31 @@ def original_distloss(w, m, interval):
     return loss_uni + loss_bi
 
 
+def einsum_distloss(w, m, interval):
+    '''
+    Einsum realization of distortion loss.
+    There are B rays each with N sampled points.
+    w:        Float tensor in shape [B,N]. Volume rendering weights of each point.
+    m:        Float tensor in shape [N]. Midpoint distance to camera of each point.
+    interval: Scalar or float tensor in shape [B,N]. The query interval of each point.
+    Note: 
+    The first term of distortion could be experssed as `(w @ mm @ w.T).diagonal()`, which 
+    could be further accelerated by einsum function `torch.einsum('bq, qp, bp->b', w, mm, w)`
+    '''
+    mm = (m.unsqueeze(-1) - m.unsqueeze(-2)).abs()  # [N,N]
+    loss = torch.einsum('bq, qp, bp->b', w, mm, w)
+    loss += (w*w*interval).sum(-1)/3.
+    return loss.mean()
+
 def gen_example(B, N):
     w = torch.rand(B, N).cuda()
     w = w / w.sum(-1, keepdim=True)
     w = w.clone().requires_grad_()
     s = torch.linspace(0, 1, N+1).cuda()
-    m = (s[1:] + s[:-1]) * 0.5
-    m = m[None].repeat(B,1)
+    m_ = (s[1:] + s[:-1]) * 0.5
+    m = m_[None].repeat(B,1)
     interval = 1/N
-    return w, m, interval
+    return w, m, interval, m_
 
 
 def spec(f, NTIMES, *args):
@@ -85,16 +101,16 @@ if __name__ == '__main__':
     B = 8192
     NTIMES = 100
 
-    for N in [32, 64, 128, 256, 384, 512]:
+    for N in [32, 64, 128, 256, 384, 512, 1024]:
         print(f' B={B}; N={N} '.center(50, '='))
-        w, m, interval = gen_example(B, N)
+        w, m, interval, m_ = gen_example(B, N)
         ray_id = torch.arange(len(w))[:,None].repeat(1,N).cuda()
 
         try:
-            print(' original_distloss '.center(50, '.'))
-            spec(original_distloss, NTIMES, w, m, interval)
+           print(' original_distloss '.center(50, '.'))
+           spec(original_distloss, NTIMES, w, m, interval)
         except RuntimeError as e:
-            print(e)
+           print(e)
 
         try:
             print(' eff_distloss_native '.center(50, '.'))
@@ -111,5 +127,11 @@ if __name__ == '__main__':
         try:
             print(' flatten_eff_distloss '.center(50, '.'))
             spec(flatten_eff_distloss, NTIMES, w.flatten(), m.flatten(), interval, ray_id.flatten())
+        except RuntimeError as e:
+            print(e)
+        
+        try:
+            print('einsum_distloss'.center(50, '.'))
+            spec(einsum_distloss, NTIMES, w, m_, interval)
         except RuntimeError as e:
             print(e)
