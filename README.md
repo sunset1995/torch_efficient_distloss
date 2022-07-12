@@ -20,6 +20,49 @@ def original_distloss(w, m, interval):
     return loss_uni + loss_bi
 ```
 
+**Updates**: Provide a python-interface implementation for distortion loss, no cuda kernels needed.
+
+```python
+def einsum_distloss(w, m, interval):
+    '''
+    Einsum realization of distortion loss.
+    There are B rays each with N sampled points.
+    w:        Float tensor in shape [B,N]. Volume rendering weights of each point.
+    m:        Float tensor in shape [N].   Midpoint distance to camera of each point.
+    interval: Scalar or float tensor in shape [B,N]. The query interval of each point.
+    Note: 
+    The first term of distortion could be experssed as `(w @ mm @ w.T).diagonal()`, which 
+    could be further accelerated by einsum function `torch.einsum('bq, qp, bp->b', w, mm, w)`
+    '''
+    mm = (m.unsqueeze(-1) - m.unsqueeze(-2)).abs()  # [N,N]
+    loss = torch.einsum('bq, qp, bp->b', w, mm, w)
+    loss += (w*w*interval).sum(-1)/3.
+    return loss.mean()
+```
+## Testing
+### Numerical equivalent
+Run `python test.py`. All our implementation is numerical equivalent to the `O(N^2)` `original_distloss`.
+
+### Speed and memeory benchmark
+Run `python test_time_mem.py`. We use a batch of `B=8192` rays. Below is the results on my `Tesla V100` GPU. (We don't have `2080Ti` to test)
+- Peak GPU memory (MB)
+    | \# of pts `N` | 32 | 64 | 128 | 256 | 384 | 512 | 1024|
+    |:------------:|:--:|:--:|:---:|:---:|:---:|:---:|:---:|
+    |`original_distloss`   |102|396|1560|6192|OOM|OOM|OOM|
+    |`eff_distloss_native` |12|24|48|96|144|192|384|
+    |`eff_distloss`        |14|28|56|112|168|224|448|
+    |`flatten_eff_distloss`|13|26|52|104|156|208|416|
+    |`einsum_distloss`     |9|18|36|72|109|145|292|
+- Run time accumulated over 100 runs (sec)
+    | \# of pts `N` | 32 | 64 | 128 | 256 | 384 | 512 |1024 |
+    |:------------:|:--:|:--:|:---:|:---:|:---:|:---:|:---:|
+    |`original_distloss`   |0.4|0.6|3.3|14.9|OOM|OOM|OOM|
+    |`eff_distloss_native` |0.2|0.2|0.2|0.4|0.4|0.5|0.8|
+    |`eff_distloss`        |0.2|0.2|0.2|0.3|0.5|0.6|0.9|
+    |`flatten_eff_distloss`|0.2|0.2|0.2|0.3|0.5|0.5|0.8|
+    |`einsum_distloss`     |0.1|0.1|0.1|0.2|0.3|0.4|0.7|
+-----
+
 Unfortunately, the straightforward implementation results in `O(N^2)` space time complexity for N sampled points on a ray. In this package, we provide our `O(N)` realization presnted in the DVGOv2 report.
 
 Please cite mip-nerf-360 if you find this repo helpful. We will be happy if you also cite DVGOv2.
